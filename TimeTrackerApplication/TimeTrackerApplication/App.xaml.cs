@@ -13,7 +13,7 @@ namespace TimeTrackerApplication
         {
             InitializeComponent();
 
-            DependencyService.Register<TimeTrackerDataStore>();
+            DependencyService.Register<TimeEntryDatastore>();
             MainPage = new AppShell();
         }
 

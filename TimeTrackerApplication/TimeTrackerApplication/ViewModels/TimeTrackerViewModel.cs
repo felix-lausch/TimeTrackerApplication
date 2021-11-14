@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using TimeTrackerApplication.Models;
 using TimeTrackerApplication.Views;
@@ -40,6 +41,8 @@ namespace TimeTrackerApplication.ViewModels
                 {
                     Entries.Add(entry);
                 }
+                //TODO: remove
+                var postResult = await DataStore.AddItemAsync(entries.First());
             }
             catch (Exception ex)
             {

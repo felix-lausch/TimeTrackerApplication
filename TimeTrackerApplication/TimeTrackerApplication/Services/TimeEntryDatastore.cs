@@ -5,29 +5,20 @@
     using System.Threading.Tasks;
     using TimeTrackerApplication.Models;
 
-    public class TimeTrackerDataStore : IDataStore<TimeEntry>
+    public class TimeEntryDatastore : IDataStore<TimeEntry>
     {
         private readonly ApiService api;
         readonly List<TimeEntry> entries;
 
-        public TimeTrackerDataStore()
+        public TimeEntryDatastore()
         {
             api = new ApiService();
-            //entries = new List<TimeEntry>()
-            //{
-            //    new TimeEntry
-            //    {
-            //        DisplayEndTime = "13:45",
-            //        DisplayStartTime = "16:45",
-            //        PauseHours = 1.75,
-            //        TotalHours = "12:50:00"
-            //    },
-            //};
         }
 
-        public Task<bool> AddItemAsync(TimeEntry item)
+        public async Task<bool> AddItemAsync(TimeEntry item)
         {
-            throw new NotImplementedException();
+            var entry = await api.PostDataAsync(item);
+            return entry != null;
         }
 
         public Task<bool> DeleteItemAsync(string id)
