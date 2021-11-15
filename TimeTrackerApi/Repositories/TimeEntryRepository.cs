@@ -1,33 +1,33 @@
-﻿using TimeTrackerApi.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using TimeTrackerApi.Models;
 
 namespace TimeTrackerApi.Repositories;
 
-public class TimeEntryRepository
+public class TimeEntryRepository : RepositoryBase
 {
-    private readonly Dictionary<Guid, TimeEntry> _timeEntries = new();
+    private readonly DbSet<TimeEntry> timeEntries;
 
-    public void Create(TimeEntry timeEntry)
+    public TimeEntryRepository(TimeTrackerContext dbContext)
+        : base(dbContext)
     {
-        if (timeEntry is null)
-        {
-            return;
-        }
-        
-        _timeEntries[timeEntry.Id] = timeEntry;
+        timeEntries = dbContext.TimeEntries;
     }
 
-    public List<TimeEntry> GetAtll()
+    public async Task<TimeEntry> CreateAsync(TimeEntry timeEntry)
     {
-        return _timeEntries.Values.ToList();
+        timeEntries.Add(timeEntry);
+        await SaveChangesAsync();
+
+        return timeEntry;
     }
 
-    public TimeEntry? GetById(Guid id)
+    public async Task<List<TimeEntry>> GetAtllAsync()
     {
-        return _timeEntries.TryGetValue(id, out var entry) switch
-        {
-            true => entry,
-            false => null
-        };
+        return await timeEntries.ToListAsync();
     }
 
+    public async Task<TimeEntry?> GetById(Guid id)
+    {
+        return await timeEntries.FindAsync(id);
+    }
 }

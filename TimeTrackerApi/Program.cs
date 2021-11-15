@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
 
 builder.Services
-    .AddSingleton<TimeEntryRepository>()
+    .AddTransient<TimeEntryRepository>()
     .AddDbContext<TimeTrackerContext>(
     options =>
     {
@@ -33,30 +33,32 @@ var app = builder.Build();
 
 app.MapGet("/", () => "Hi :)");
 
-app.MapGet("/timeEntry", ([FromServices] TimeEntryRepository repo) =>
-{
-    return repo.GetAtll();
-});
+app.MapGet("/timeEntries",
+    async ([FromServices] TimeEntryRepository repo) =>
+    {
+        return await repo.GetAtllAsync();
+    });
 
-app.MapGet("/timeEntry/{id}", ([FromServices] TimeEntryRepository repo, Guid id) =>
-{
-    var timeEntry = repo.GetById(id);
-    return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
-});
+app.MapGet("/timeEntry/{id}",
+    async ([FromServices] TimeEntryRepository repo, Guid id) =>
+    {
+        var timeEntry = await repo.GetById(id);
+        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
+    });
 
 app.MapPost("/timeEntry",
-    ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
-{
-    var validationResult = validator.Validate(entry);
-    if(!validationResult.IsValid)
+    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
     {
-        var errors = validationResult.Errors.Select(x => new { errors = x.ErrorMessage });
-        return Results.BadRequest(errors);
-    }
+        var validationResult = validator.Validate(entry);
+        if(!validationResult.IsValid)
+        {
+            //var errors = validationResult.Errors.Select(x => new { errors = x.ErrorMessage });
+            return Results.BadRequest(validationResult.ToString());
+        }
 
-    repo.Create(entry);
+        var createdEntry = await repo.CreateAsync(entry);
 
-    return Results.Ok();
-});
+        return Results.Ok(createdEntry);
+    });
 
 app.Run();

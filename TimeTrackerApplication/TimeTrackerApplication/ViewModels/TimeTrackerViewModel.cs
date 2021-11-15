@@ -16,6 +16,9 @@ namespace TimeTrackerApplication.ViewModels
         public ObservableCollection<TimeEntry> Entries { get; }
         public Command LoadEntriesCommand { get; }
         public Command AddItemCommand { get; }
+
+        public Command RefreshEntriesCommand { get; }
+
         public Command<Item> ItemTapped { get; }
 
         public TimeTrackerViewModel()
@@ -27,6 +30,12 @@ namespace TimeTrackerApplication.ViewModels
             //ItemTapped = new Command<Item>(OnItemSelected);
 
             //AddItemCommand = new Command(OnAddItem);
+            RefreshEntriesCommand = new Command(async () => await OnRefreshEntries());
+        }
+
+        private async Task OnRefreshEntries()
+        {
+            //await ExecuteLoadItemsCommand(); //understand refresh view
         }
 
         async Task ExecuteLoadItemsCommand()
@@ -37,12 +46,13 @@ namespace TimeTrackerApplication.ViewModels
             {
                 Entries.Clear();
                 var entries = await DataStore.GetItemsAsync(true);
+
                 foreach (var entry in entries)
                 {
                     Entries.Add(entry);
                 }
                 //TODO: remove
-                var postResult = await DataStore.AddItemAsync(entries.First());
+                //var postResult = await DataStore.AddItemAsync(entries.First());
             }
             catch (Exception ex)
             {

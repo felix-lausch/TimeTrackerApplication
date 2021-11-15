@@ -8,7 +8,6 @@
     public class TimeEntryDatastore : IDataStore<TimeEntry>
     {
         private readonly ApiService api;
-        readonly List<TimeEntry> entries;
 
         public TimeEntryDatastore()
         {

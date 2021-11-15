@@ -15,7 +15,6 @@
 
         public async Task<ObservableCollection<T>> RefreshDataAsync<T>()
         {
-
             var uri = new Uri(url);
             try
             {
@@ -31,7 +30,7 @@
             catch (Exception ex)
             {
             }
-            return null;
+            return new ObservableCollection<T>();
         }
 
         public async Task<T> PostDataAsync<T>(T input)
