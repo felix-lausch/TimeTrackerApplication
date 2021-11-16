@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TimeTrackerApplication.Models;
 using TimeTrackerApplication.Views;
@@ -15,11 +17,16 @@ namespace TimeTrackerApplication.ViewModels
 
         public ObservableCollection<TimeEntry> Entries { get; }
         public Command LoadEntriesCommand { get; }
-        public Command AddItemCommand { get; }
-
+        public Command AddTimeEntryCommand { get; }
+        public Command StartEntryCompleted { get; }
         public Command RefreshEntriesCommand { get; }
-
         public Command<Item> ItemTapped { get; }
+
+        private string startEntry = string.Empty;
+        public string StartEntry {
+            get { return startEntry; }
+            set { SetProperty(ref startEntry, value); }
+        }
 
         public TimeTrackerViewModel()
         {
@@ -29,13 +36,20 @@ namespace TimeTrackerApplication.ViewModels
 
             //ItemTapped = new Command<Item>(OnItemSelected);
 
-            //AddItemCommand = new Command(OnAddItem);
+            AddTimeEntryCommand = new Command(async (x) => await OnAddTimeEntry(x));
             RefreshEntriesCommand = new Command(async () => await OnRefreshEntries());
         }
 
         private async Task OnRefreshEntries()
         {
             //await ExecuteLoadItemsCommand(); //understand refresh view
+            Entries.Clear();
+            var entries = await DataStore.GetItemsAsync(true);
+            
+            foreach (var entry in entries)
+            {
+                Entries.Add(entry);
+            }
         }
 
         async Task ExecuteLoadItemsCommand()
@@ -80,10 +94,21 @@ namespace TimeTrackerApplication.ViewModels
         //    }
         //}
 
-        //private async void OnAddItem(object obj)
-        //{
-        //    await Shell.Current.GoToAsync(nameof(NewItemPage));
-        //}
+        private async Task OnAddTimeEntry(object obj)
+        {
+            //TODO: build post entry
+            var start = startEntry.Split(':');
+
+            var timeEntry = new TimeEntry();
+
+            if (int.TryParse(start[0], out int value))
+            {
+                timeEntry.StartHours = value;
+            };
+
+            var isSuccess = await DataStore.AddItemAsync(timeEntry);
+            //TODO: send post request
+        }
 
         //async void OnItemSelected(Item item)
         //{

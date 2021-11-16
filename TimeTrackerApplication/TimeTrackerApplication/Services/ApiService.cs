@@ -9,16 +9,18 @@
 
     public class ApiService : IApiService
     {
-        private static string url = "http://localhost:5000/timeEntry";
+        private static string baseUrl = "http://localhost:5000/timeEntry";
 
-        private HttpClient client = new HttpClient();
+        private HttpClient client = new HttpClient(); //TODO: use HttpClientFactory & then DI
+
+        //TODO: look into refit
 
         public async Task<ObservableCollection<T>> RefreshDataAsync<T>()
         {
-            var uri = new Uri(url);
+            //var uri = new Uri(baseUrl);
             try
             {
-                var response = await client.GetAsync(uri);
+                var response = await client.GetAsync("http://localhost:5000/timeEntries");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -35,8 +37,8 @@
 
         public async Task<T> PostDataAsync<T>(T input)
         {
-
-            var uri = new Uri(url);
+            //TODO: use refit for this shit
+            var uri = new Uri(baseUrl);
 
             string json = JsonConvert.SerializeObject(input);
 
@@ -45,9 +47,11 @@
             HttpResponseMessage response = null;
             response = await client.PostAsync(uri, content);
 
+            var responseContent = await response.Content.ReadAsStringAsync();
+
             if (response.IsSuccessStatusCode)
             {
-                var responseContent = await response.Content.ReadAsStringAsync();
+                //var responseContent = await response.Content.ReadAsStringAsync();
                 var created = JsonConvert.DeserializeObject<T>(responseContent);
                 return created;
             }

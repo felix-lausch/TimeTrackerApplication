@@ -14,14 +14,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>();
 
 //Services
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .Build();
-});
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+//        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+//        .RequireAuthenticatedUser()
+//        .Build();
+//});
 
 builder.Services
     .AddTransient<TimeEntryRepository>()
@@ -48,26 +48,24 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
-app.MapGet("/", () => "Hi :)").AllowAnonymous();
+app.MapGet("/", () => "Hi :)");
 
 app.MapGet("/timeEntries",
     async ([FromServices] TimeEntryRepository repo) =>
     {
         var timeEntries = await repo.GetAtllAsync();
         return Results.Ok(timeEntries);
-    })
-    .AllowAnonymous();
+    });
 
 app.MapGet("/timeEntry/{id}",
     async ([FromServices] TimeEntryRepository repo, Guid id) =>
     {
         var timeEntry = await repo.GetById(id);
         return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
-    })
-    .AllowAnonymous();
+    });
 
 app.MapPost("/timeEntry",
     async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
@@ -82,7 +80,6 @@ app.MapPost("/timeEntry",
         var createdEntry = await repo.CreateAsync(entry);
 
         return Results.Ok(createdEntry);
-    })
-    .AllowAnonymous();
+    });
 
 app.Run();
