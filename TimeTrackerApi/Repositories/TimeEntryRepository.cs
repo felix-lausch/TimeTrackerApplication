@@ -30,4 +30,17 @@ public class TimeEntryRepository : RepositoryBase
     {
         return await timeEntries.FindAsync(id);
     }
+
+    public async Task DeleteById(Guid id)
+    {
+        var timeEntry = await GetById(id);
+
+        if (timeEntry is null)
+        {
+            throw new ArgumentException("TimeEntry to delete couldn't be found.");
+        }
+
+        timeEntries.Remove(timeEntry);
+        await SaveChangesAsync();
+    }
 }
