@@ -69,21 +69,6 @@ app.MapGet("/timeEntry/{id}",
     })
     .AllowAnonymous();
 
-app.MapDelete("/timeEntry/{id}",
-    async ([FromServices] TimeEntryRepository repo, Guid id) =>
-    {
-        try
-        {
-            await repo.DeleteById(id);
-            return Results.NoContent();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-    })
-    .AllowAnonymous();
-
 app.MapPost("/timeEntry",
     async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
     {
@@ -97,6 +82,21 @@ app.MapPost("/timeEntry",
         var createdEntry = await repo.CreateAsync(entry);
 
         return Results.Ok(createdEntry);
+    })
+    .AllowAnonymous();
+
+app.MapDelete("/timeEntry/{id}",
+    async ([FromServices] TimeEntryRepository repo, Guid id) =>
+    {
+        try
+        {
+            await repo.DeleteById(id);
+            return Results.NoContent();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
     })
     .AllowAnonymous();
 
