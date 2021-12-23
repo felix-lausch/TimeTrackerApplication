@@ -5,7 +5,7 @@ namespace TimeTrackerApi.Models
 {
     public class TimeEntry
     {
-        public Guid Id { get; internal set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         [JsonIgnore]
         public DateTime Date { get; set; } = DateTime.UtcNow;

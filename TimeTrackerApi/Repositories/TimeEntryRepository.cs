@@ -44,7 +44,7 @@ public class TimeEntryRepository : RepositoryBase
         await SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(TimeEntry entry)
+    public async Task<TimeEntry> UpdateAsync(TimeEntry entry)
     {
         var existingEntry = await GetById(entry.Id);
 
@@ -61,5 +61,7 @@ public class TimeEntryRepository : RepositoryBase
         existingEntry.PauseHours = entry.PauseHours;
 
         await SaveChangesAsync();
+
+        return entry;
     }
 }

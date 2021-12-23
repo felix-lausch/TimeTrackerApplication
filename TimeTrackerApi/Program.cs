@@ -100,8 +100,8 @@ app.MapPut("/timeEntry",
             return Results.BadRequest(errors);
         }
 
-        await repo.UpdateAsync(entry);
-        return Results.Ok();
+        var result = await repo.UpdateAsync(entry);
+        return Results.Ok(result);
     })
     .AllowAnonymous();
 
