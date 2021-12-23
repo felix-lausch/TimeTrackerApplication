@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TimeTrackerApplication.Views.TimeTrackerPage"
              Title="{Binding Title}"
-             xmlns:local="clr-namespace:TimeTrackerApplication.ViewModels"  
+             xmlns:local="clr-namespace:TimeTrackerApplication.ViewModels"
+             xmlns:behaviors="clr-namespace:TimeTrackerApplication.Behaviors"
              xmlns:model="clr-namespace:TimeTrackerApplication.Models"  
              x:Name="BrowseItemsPage">
 <!--
@@ -15,41 +16,84 @@
       x:DataType enables compiled bindings for better performance and compile time validation of binding expressions.
       https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/data-binding/compiled-bindings
     -->
-    <RefreshView x:DataType="local:TimeTrackerViewModel" Command="{Binding LoadEntriesCommand}" IsRefreshing="{Binding IsBusy, Mode=TwoWay}">
-        <CollectionView x:Name="ItemsListView"
+    <StackLayout HorizontalOptions="Center">
+        <StackLayout Orientation="Horizontal" Margin="20">
+            <Button Command="{Binding AddEntryCommand}" Text="Add"/>
+            <Entry  Text="{Binding StartTimeEntry, Mode=TwoWay}"
+                    Placeholder="Start">
+                <Entry.Behaviors>
+                    <behaviors:TimeEntryBehavior />
+                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                </Entry.Behaviors>
+            </Entry>
+            <Entry  Text="{Binding EndTimeEntry, Mode=TwoWay}"
+                    Placeholder="End">
+                <Entry.Behaviors>
+                    <behaviors:TimeEntryBehavior />
+                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                </Entry.Behaviors>
+            </Entry>
+            <Entry  Text="{Binding PauseEntry, Mode=TwoWay}"
+                    Placeholder="Pause">
+                <Entry.Behaviors>
+                    <behaviors:DoubleBehavior />
+                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                </Entry.Behaviors>
+            </Entry>
+        </StackLayout>
+        <Grid BackgroundColor="Black"
+              HeightRequest="1"
+              Margin="20, 0"/>
+        <RefreshView x:DataType="local:TimeTrackerViewModel" Command="{Binding LoadEntriesCommand}" 
+                     IsRefreshing="{Binding IsBusy, Mode=TwoWay}"
+                     Margin="20">
+            <CollectionView x:Name="ItemsListView"
                 ItemsSource="{Binding Entries}"
                 SelectionMode="None">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <StackLayout Padding="10" x:DataType="model:TimeEntry">
-                        <Label Text="{Binding DisplayStartTime}" 
-                            LineBreakMode="NoWrap" 
-                            Style="{DynamicResource ListItemTextStyle}" 
-                            FontSize="16" />
-                        <Label Text="{Binding DisplayEndTime}" 
-                            LineBreakMode="NoWrap"
-                            Style="{DynamicResource ListItemDetailTextStyle}"
-                            FontSize="13" />
-                        <Label Text="{Binding PauseHours}" 
-                            LineBreakMode="NoWrap"
-                            Style="{DynamicResource ListItemDetailTextStyle}"
-                            FontSize="13" />
-                        <Label Text="{Binding TotalHours}" 
-                            LineBreakMode="NoWrap"
-                            Style="{DynamicResource ListItemDetailTextStyle}"
-                            FontSize="13" />
-                        <!--
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <StackLayout x:DataType="model:TimeEntry" Orientation="Horizontal">
+                            <Button CommandParameter="{Binding .}"
+                                    Text="Update"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type local:TimeTrackerViewModel}}, Path=UpdateEntryCommand}" />
+                            <Entry Text="{Binding DisplayStartTime, Mode=TwoWay}"
+                                   FontSize="16" >
+                                <Entry.Behaviors>
+                                    <behaviors:TimeEntryBehavior />
+                                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                                </Entry.Behaviors>
+                            </Entry>
+                            <Entry Text="{Binding DisplayEndTime, Mode=TwoWay}"
+                                   FontSize="16" >
+                                <Entry.Behaviors>
+                                    <behaviors:TimeEntryBehavior />
+                                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                                </Entry.Behaviors>
+                            </Entry>
+                            <Entry Text="{Binding PauseHours, Mode=TwoWay}"
+                                   FontSize="16" >
+                                <Entry.Behaviors>
+                                    <behaviors:DoubleBehavior />
+                                    <behaviors:MaxLengthBehavior MaxLength="5"/>
+                                </Entry.Behaviors>
+                            </Entry>
+                            <Label Text="{Binding TotalHours}"
+                                   VerticalOptions="Center"
+                                   Style="{DynamicResource ListItemTextStyle}"
+                                   FontSize="16" />
                         <StackLayout.GestureRecognizers>
                             <TapGestureRecognizer 
                                 NumberOfTapsRequired="1"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type local:ItemsViewModel}}, Path=ItemTapped}"		
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type local:TimeTrackerViewModel}}, Path=TimeEntryTapped}"		
                                 CommandParameter="{Binding .}">
                             </TapGestureRecognizer>
                         </StackLayout.GestureRecognizers>
-                        -->
-                    </StackLayout>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </RefreshView>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </StackLayout>
+    
+    
 </ContentPage>

@@ -11,15 +11,19 @@ namespace TimeTrackerApplication.ViewModels
 {
     public class TimeTrackerViewModel : BaseViewModel
     {
-        private Item _selectedItem;
+        private string _startTimeEntry = string.Empty;
+        private string _endTimeEntry = string.Empty;
+        private string _pauseEntry = string.Empty;
 
         public ObservableCollection<TimeEntry> Entries { get; }
         public Command LoadEntriesCommand { get; }
-        public Command AddItemCommand { get; }
+        public Command AddEntryCommand { get; }
+
+        public Command<TimeEntry> UpdateEntryCommand { get; }
 
         public Command RefreshEntriesCommand { get; }
 
-        public Command<Item> ItemTapped { get; }
+        public Command<TimeEntry> TimeEntryTapped { get; }
 
         public TimeTrackerViewModel()
         {
@@ -27,9 +31,10 @@ namespace TimeTrackerApplication.ViewModels
             Entries = new ObservableCollection<TimeEntry>();
             LoadEntriesCommand = new Command(async () => await ExecuteLoadItemsCommand());
 
-            //ItemTapped = new Command<Item>(OnItemSelected);
+            TimeEntryTapped = new Command<TimeEntry>(OnTimeEntrySelected);
 
-            //AddItemCommand = new Command(OnAddItem);
+            AddEntryCommand = new Command(async () => await OnAddEntry());
+            UpdateEntryCommand = new Command<TimeEntry>(async (x) => await OnUpdateEntry(x));
             RefreshEntriesCommand = new Command(async () => await OnRefreshEntries());
         }
 
@@ -38,21 +43,19 @@ namespace TimeTrackerApplication.ViewModels
             //await ExecuteLoadItemsCommand(); //understand refresh view
         }
 
-        async Task ExecuteLoadItemsCommand()
+        private async Task ExecuteLoadItemsCommand()
         {
             IsBusy = true;
 
             try
             {
                 Entries.Clear();
-                var entries = await DataStore.GetItemsAsync(true);
+                var entries = await DataStore.GetItemsAsync();
 
                 foreach (var entry in entries)
                 {
                     Entries.Add(entry);
                 }
-                //TODO: remove
-                //var postResult = await DataStore.AddItemAsync(entries.First());
             }
             catch (Exception ex)
             {
@@ -80,18 +83,72 @@ namespace TimeTrackerApplication.ViewModels
         //    }
         //}
 
-        //private async void OnAddItem(object obj)
-        //{
-        //    await Shell.Current.GoToAsync(nameof(NewItemPage));
-        //}
+        public string StartTimeEntry {
+            get => _startTimeEntry;
+            set => SetProperty(ref _startTimeEntry, value);
+        }
 
-        //async void OnItemSelected(Item item)
-        //{
-        //    if (item == null)
-        //        return;
+        public string EndTimeEntry {
+            get => _endTimeEntry;
+            set => SetProperty(ref _endTimeEntry, value);
+        }
 
-        //    // This will push the ItemDetailPage onto the navigation stack
-        //    await Shell.Current.GoToAsync($"{nameof(ItemDetailPage)}?{nameof(ItemDetailViewModel.ItemId)}={item.Id}");
-        //}
+        public string PauseEntry {
+            get => _pauseEntry;
+            set => SetProperty(ref _pauseEntry, value);
+        }
+
+        private async Task OnAddEntry()
+        {
+            var (startHours, startMinutes) = ParseTimeEntry(StartTimeEntry);
+            var (endHours, endMinutes) = ParseTimeEntry(EndTimeEntry);
+            var pause = Convert.ToDouble(PauseEntry);
+
+            var timeEntry = new TimeEntry
+            {
+                StartHours = startHours,
+                StartMinutes = startMinutes,
+                EndHours = endHours,
+                EndMinutes = endMinutes,
+                PauseHours = pause,
+            };
+
+            var entry = await DataStore.AddItemAsync(timeEntry);
+            Entries.Add(entry);
+
+            //reset inputs
+            StartTimeEntry = string.Empty;
+            EndTimeEntry = string.Empty;
+            PauseEntry = string.Empty;
+        }
+
+        private async Task OnUpdateEntry(TimeEntry timeEntry)
+        {
+            var idk = await DataStore.UpdateItemAsync(timeEntry);
+            //TODO: what doing here?
+        }
+
+        async void OnTimeEntrySelected(TimeEntry timeEntry)
+        {
+            if (timeEntry is null)
+            {
+                return;
+            }
+
+            var idkifthisshitworks = timeEntry;
+
+            // This will push the ItemDetailPage onto the navigation stack
+            //await Shell.Current.GoToAsync($"{nameof(ItemDetailPage)}?{nameof(ItemDetailViewModel.ItemId)}={item.Id}");
+        }
+
+        private (int Hours, int Minutes) ParseTimeEntry(string timeEntry)
+        {
+            var strings = timeEntry.Split(':');
+
+            var hours = Convert.ToInt32(strings[0]);
+            var minutes = Convert.ToInt32(strings[1]);
+
+            return (hours, minutes);
+        }
     }
 }

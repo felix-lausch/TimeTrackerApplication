@@ -13,15 +13,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>();
 
-//Services
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        .RequireAuthenticatedUser()
-        .Build();
-});
+//Adds
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+//        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+//        .RequireAuthenticatedUser()
+//        .Build();
+//});
 
 builder.Services
     .AddTransient<TimeEntryRepository>()
@@ -48,8 +48,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
 
 app.MapGet("/", () => "Hi :)").AllowAnonymous();
 
@@ -82,6 +82,26 @@ app.MapPost("/timeEntry",
         var createdEntry = await repo.CreateAsync(entry);
 
         return Results.Ok(createdEntry);
+    })
+    .AllowAnonymous();
+
+app.MapPut("/timeEntry",
+    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
+    {
+        if (entry.Id == Guid.Empty)
+        {
+            return Results.BadRequest("No valid id provided.");
+        }
+
+        var validationResult = validator.Validate(entry);
+        if (!validationResult.IsValid)
+        {
+            var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
+            return Results.BadRequest(errors);
+        }
+
+        await repo.UpdateAsync(entry);
+        return Results.Ok();
     })
     .AllowAnonymous();
 

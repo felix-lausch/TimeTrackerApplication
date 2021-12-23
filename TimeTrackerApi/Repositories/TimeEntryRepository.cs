@@ -43,4 +43,23 @@ public class TimeEntryRepository : RepositoryBase
         timeEntries.Remove(timeEntry);
         await SaveChangesAsync();
     }
+
+    public async Task UpdateAsync(TimeEntry entry)
+    {
+        var existingEntry = await GetById(entry.Id);
+
+        if (existingEntry is null)
+        {
+            throw new ArgumentException("TimeEntry to update couldn't be found.");
+        }
+
+        existingEntry.Date = entry.Date;
+        existingEntry.StartHours = entry.StartHours;
+        existingEntry.StartMinutes = entry.StartMinutes;
+        existingEntry.EndHours = entry.EndHours;
+        existingEntry.EndMinutes = entry.EndMinutes;
+        existingEntry.PauseHours = entry.PauseHours;
+
+        await SaveChangesAsync();
+    }
 }
