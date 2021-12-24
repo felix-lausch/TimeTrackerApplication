@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TimeTrackerApplication.Models;
 using TimeTrackerApplication.Views;
@@ -11,6 +12,10 @@ namespace TimeTrackerApplication.ViewModels
 {
     public class TimeTrackerViewModel : BaseViewModel
     {
+        private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private Task _infoTask = Task.CompletedTask;
+        private string _infoText = string.Empty;
+        private string _infoTextColor = "ForestGreen";
         private string _startTimeEntry = string.Empty;
         private string _endTimeEntry = string.Empty;
         private string _pauseEntry = string.Empty;
@@ -27,7 +32,7 @@ namespace TimeTrackerApplication.ViewModels
 
         public TimeTrackerViewModel()
         {
-            Title = "Browse";
+            Title = "Time Tracker";
             Entries = new ObservableCollection<TimeEntry>();
             LoadEntriesCommand = new Command(async () => await ExecuteLoadItemsCommand());
 
@@ -88,6 +93,16 @@ namespace TimeTrackerApplication.ViewModels
             set => SetProperty(ref _startTimeEntry, value);
         }
 
+        public string InfoText {
+            get => _infoText;
+            set => SetProperty(ref _infoText, value);
+        }
+
+        public string InfoTextColor {
+            get => _infoTextColor;
+            set => SetProperty(ref _infoTextColor, value);
+        }
+
         public string EndTimeEntry {
             get => _endTimeEntry;
             set => SetProperty(ref _endTimeEntry, value);
@@ -124,8 +139,22 @@ namespace TimeTrackerApplication.ViewModels
 
         private async Task OnUpdateEntry(TimeEntry timeEntry)
         {
-            var idk = await DataStore.UpdateItemAsync(timeEntry);
-            //TODO: what doing here?
+            var timeEntryBefore = timeEntry;
+
+            // assign hours & minutes from new user input
+            var (startHours, startMinutes) = ParseTimeEntry(timeEntry.DisplayStartTime);
+            var (endHours, endMinutes) = ParseTimeEntry(timeEntry.DisplayEndTime);
+
+            timeEntry.StartHours= startHours;
+            timeEntry.StartMinutes = startMinutes;
+            timeEntry.EndHours = endHours;
+            timeEntry.EndMinutes = endMinutes;
+
+            var result = await DataStore.UpdateItemAsync(timeEntry);
+
+            result.Switch (
+                async entry => await HandleInfoText("Entry updated"),
+                async error => await HandleInfoText(error, success: false));
         }
 
         async void OnTimeEntrySelected(TimeEntry timeEntry)
@@ -149,6 +178,22 @@ namespace TimeTrackerApplication.ViewModels
             var minutes = Convert.ToInt32(strings[1]);
 
             return (hours, minutes);
+        }
+
+        private async Task HandleInfoText(string infoText, bool success = true)
+        {
+            if (_infoTask.Status == TaskStatus.Running)
+            {
+                tokenSource.Cancel();
+            }
+
+            InfoTextColor = success ? "ForestGreen" : "PaleVioletRed";
+            InfoText = infoText;
+            
+            _infoTask = Task.Delay(2000, tokenSource.Token);
+            await _infoTask;
+
+            InfoText = string.Empty;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿namespace TimeTrackerApplication.Services
 {
+    using OneOf;
+    using OneOf.Types;
     using Refit;
     using System;
     using System.Collections.Generic;
@@ -37,17 +39,16 @@
             return await api.GetTimeEntries();
         }
 
-        //public async Task<bool> UpdateItemAsync(TimeEntry item)
-        //{
-        //    await api.UpdateTimeEntry(item);
-        //    return true; //TODO: remove bool?
-        //}
-
-        public async Task<TimeEntry> UpdateItemAsync(TimeEntry item)
+        public async Task<OneOf<TimeEntry, string>> UpdateItemAsync(TimeEntry item)
         {
-            await api.UpdateTimeEntry(item);
-            return item;
+            var apiResponse = await api.UpdateTimeEntry(item);
+            
+            if (apiResponse.IsSuccessStatusCode)
+            {
+                return item;
+            }
 
+            return apiResponse.Error.Content;
         }
     }
 }

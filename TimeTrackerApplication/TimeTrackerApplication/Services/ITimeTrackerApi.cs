@@ -20,7 +20,7 @@
         [Delete("/timeEntry/{id}")]
         Task DeleteTimeEntryById(Guid id);
 
-        [Patch("/timeEntry")]
-        Task UpdateTimeEntry(TimeEntry timeEntry);
+        [Put("/timeEntry")]
+        Task<ApiResponse<TimeEntry>> UpdateTimeEntry(TimeEntry timeEntry);
     }
 }

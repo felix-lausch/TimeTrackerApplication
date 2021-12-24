@@ -44,6 +44,10 @@
         <Grid BackgroundColor="Black"
               HeightRequest="1"
               Margin="20, 0"/>
+        <Label Text="{Binding InfoText}" Margin="20, 0" TextColor="{Binding InfoTextColor}" />
+        <Grid BackgroundColor="Black"
+              HeightRequest="1"
+              Margin="20, 0"/>
         <RefreshView x:DataType="local:TimeTrackerViewModel" Command="{Binding LoadEntriesCommand}" 
                      IsRefreshing="{Binding IsBusy, Mode=TwoWay}"
                      Margin="20">
