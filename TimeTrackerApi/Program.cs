@@ -22,6 +22,7 @@ builder.Configuration.AddUserSecrets<Program>();
 //        .RequireAuthenticatedUser()
 //        .Build();
 //});
+builder.Services.AddMemoryCache();
 
 builder.Services
     .AddTransient<TimeEntryRepository>()
