@@ -8,6 +8,7 @@ using System.Reflection;
 using TimeTrackerApi;
 using TimeTrackerApi.Models;
 using TimeTrackerApi.Repositories;
+using TimeTrackerApi.Specifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddMemoryCache();
 
 builder.Services
     .AddTransient<TimeEntryRepository>()
+    .AddScoped(typeof(EfRepository<>))
+    .AddScoped(typeof(IRepository<>), typeof(CachedRepository<>))
     .AddDbContext<TimeTrackerContext>(
     options =>
     {
@@ -62,10 +65,29 @@ app.MapGet("/timeEntries",
     })
     .AllowAnonymous();
 
+app.MapGet("/timeEntries2",
+    async ([FromServices] IRepository<TimeEntry> repo, ILogger<Program> logger) =>
+    {
+        logger.LogInformation("Get all time entries requested.");
+        //var spec = new TimeEntriesSpecification();
+        //var timeEntries = await repo.ListAsync(spec);
+        var timeEntries = await repo.ListAsync();
+        return Results.Ok(timeEntries);
+    })
+    .AllowAnonymous();
+
 app.MapGet("/timeEntry/{id}",
     async ([FromServices] TimeEntryRepository repo, Guid id) =>
     {
         var timeEntry = await repo.GetById(id);
+        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
+    })
+    .AllowAnonymous();
+
+app.MapGet("/timeEntry2/{id}",
+    async ([FromServices] IRepository<TimeEntry> repo, Guid id) =>
+    {
+        var timeEntry = await repo.GetByIdAsync(id);
         return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
     })
     .AllowAnonymous();
