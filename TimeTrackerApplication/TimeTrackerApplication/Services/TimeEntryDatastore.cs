@@ -1,5 +1,8 @@
 ﻿namespace TimeTrackerApplication.Services
 {
+    using OneOf;
+    using OneOf.Types;
+    using Refit;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -7,66 +10,45 @@
 
     public class TimeEntryDatastore : IDataStore<TimeEntry>
     {
-        private readonly ApiService api;
+        private const string timeTrackerUrl = "http://localhost:5000";
+        private readonly ITimeTrackerApi api;
 
         public TimeEntryDatastore()
         {
-            api = new ApiService();
+            api = RestService.For<ITimeTrackerApi>(timeTrackerUrl);
         }
 
-        public async Task<bool> AddItemAsync(TimeEntry item)
+        public async Task<TimeEntry> AddItemAsync(TimeEntry item)
         {
-            var entry = await api.PostDataAsync(item);
-            return entry != null;
+            return await api.CreateTimeEntry(item);
         }
 
-        public Task<bool> DeleteItemAsync(string id)
+        public async Task<bool> DeleteItemAsync(Guid id)
         {
-            throw new NotImplementedException();
+            await api.DeleteTimeEntryById(id);
+            return true; //TODO: make better
         }
 
-        public Task<TimeEntry> GetItemAsync(string id)
+        public async Task<TimeEntry> GetItemAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return await api.GetTimeEntryById(id);
         }
-
-        //public async Task<bool> AddItemAsync(TimeEntry entry)
-        //{
-        //    entries.Add(entry);
-
-        //    return await Task.FromResult(true);
-        //}
-
-        //public async Task<bool> UpdateItemAsync(TimeEntry entry)
-        //{
-        //    var oldItem = entries.Where((TimeEntry arg) => arg.Id == entry.Id).FirstOrDefault();
-        //    entries.Remove(oldItem);
-        //    entries.Add(entry);
-
-        //    return await Task.FromResult(true);
-        //}
-
-        //public async Task<bool> DeleteItemAsync(string id)
-        //{
-        //    var oldItem = entries.Where((Item arg) => arg.Id == id).FirstOrDefault();
-        //    entries.Remove(oldItem);
-
-        //    return await Task.FromResult(true);
-        //}
-
-        //public async Task<Item> GetItemAsync(string id)
-        //{
-        //    return await Task.FromResult(entries.FirstOrDefault(s => s.Id == id));
-        //}
 
         public async Task<IEnumerable<TimeEntry>> GetItemsAsync(bool forceRefresh = false)
         {
-            return await api.RefreshDataAsync<TimeEntry>();
+            return await api.GetTimeEntries();
         }
 
-        public Task<bool> UpdateItemAsync(TimeEntry item)
+        public async Task<OneOf<TimeEntry, string>> UpdateItemAsync(TimeEntry item)
         {
-            throw new NotImplementedException();
+            var apiResponse = await api.UpdateTimeEntry(item);
+            
+            if (apiResponse.IsSuccessStatusCode)
+            {
+                return item;
+            }
+
+            return apiResponse.Error.Content;
         }
     }
 }

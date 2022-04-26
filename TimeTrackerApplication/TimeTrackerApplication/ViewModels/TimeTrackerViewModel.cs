@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using TimeTrackerApplication.Models;
 using TimeTrackerApplication.Views;
@@ -13,14 +13,23 @@ namespace TimeTrackerApplication.ViewModels
 {
     public class TimeTrackerViewModel : BaseViewModel
     {
-        private Item _selectedItem;
+        private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private Task _infoTask = Task.CompletedTask;
+        private string _infoText = string.Empty;
+        private string _infoTextColor = "ForestGreen";
+        private string _startTimeEntry = string.Empty;
+        private string _endTimeEntry = string.Empty;
+        private string _pauseEntry = string.Empty;
 
         public ObservableCollection<TimeEntry> Entries { get; }
         public Command LoadEntriesCommand { get; }
-        public Command AddTimeEntryCommand { get; }
-        public Command StartEntryCompleted { get; }
+        public Command AddEntryCommand { get; }
+
+        public Command<TimeEntry> UpdateEntryCommand { get; }
+
         public Command RefreshEntriesCommand { get; }
-        public Command<Item> ItemTapped { get; }
+
+        public Command<TimeEntry> TimeEntryTapped { get; }
 
         private string startEntry = string.Empty;
         public string StartEntry {
@@ -30,13 +39,14 @@ namespace TimeTrackerApplication.ViewModels
 
         public TimeTrackerViewModel()
         {
-            Title = "Browse";
+            Title = "Time Tracker";
             Entries = new ObservableCollection<TimeEntry>();
             LoadEntriesCommand = new Command(async () => await ExecuteLoadItemsCommand());
 
-            //ItemTapped = new Command<Item>(OnItemSelected);
+            TimeEntryTapped = new Command<TimeEntry>(OnTimeEntrySelected);
 
-            AddTimeEntryCommand = new Command(async (x) => await OnAddTimeEntry(x));
+            AddEntryCommand = new Command(async () => await OnAddEntry());
+            UpdateEntryCommand = new Command<TimeEntry>(async (x) => await OnUpdateEntry(x));
             RefreshEntriesCommand = new Command(async () => await OnRefreshEntries());
         }
 
@@ -52,21 +62,19 @@ namespace TimeTrackerApplication.ViewModels
             }
         }
 
-        async Task ExecuteLoadItemsCommand()
+        private async Task ExecuteLoadItemsCommand()
         {
             IsBusy = true;
 
             try
             {
                 Entries.Clear();
-                var entries = await DataStore.GetItemsAsync(true);
+                var entries = await DataStore.GetItemsAsync();
 
                 foreach (var entry in entries)
                 {
                     Entries.Add(entry);
                 }
-                //TODO: remove
-                //var postResult = await DataStore.AddItemAsync(entries.First());
             }
             catch (Exception ex)
             {
@@ -94,29 +102,112 @@ namespace TimeTrackerApplication.ViewModels
         //    }
         //}
 
-        private async Task OnAddTimeEntry(object obj)
-        {
-            //TODO: build post entry
-            var start = startEntry.Split(':');
-
-            var timeEntry = new TimeEntry();
-
-            if (int.TryParse(start[0], out int value))
-            {
-                timeEntry.StartHours = value;
-            };
-
-            var isSuccess = await DataStore.AddItemAsync(timeEntry);
-            //TODO: send post request
+        public string StartTimeEntry {
+            get => _startTimeEntry;
+            set => SetProperty(ref _startTimeEntry, value);
         }
 
-        //async void OnItemSelected(Item item)
-        //{
-        //    if (item == null)
-        //        return;
+        public string InfoText {
+            get => _infoText;
+            set => SetProperty(ref _infoText, value);
+        }
 
-        //    // This will push the ItemDetailPage onto the navigation stack
-        //    await Shell.Current.GoToAsync($"{nameof(ItemDetailPage)}?{nameof(ItemDetailViewModel.ItemId)}={item.Id}");
-        //}
+        public string InfoTextColor {
+            get => _infoTextColor;
+            set => SetProperty(ref _infoTextColor, value);
+        }
+
+        public string EndTimeEntry {
+            get => _endTimeEntry;
+            set => SetProperty(ref _endTimeEntry, value);
+        }
+
+        public string PauseEntry {
+            get => _pauseEntry;
+            set => SetProperty(ref _pauseEntry, value);
+        }
+
+        private async Task OnAddEntry()
+        {
+            var (startHours, startMinutes) = ParseTimeEntry(StartTimeEntry);
+            var (endHours, endMinutes) = ParseTimeEntry(EndTimeEntry);
+            var pause = Convert.ToDouble(PauseEntry);
+
+            var timeEntry = new TimeEntry
+            {
+                StartHours = startHours,
+                StartMinutes = startMinutes,
+                EndHours = endHours,
+                EndMinutes = endMinutes,
+                PauseHours = pause,
+            };
+
+            var entry = await DataStore.AddItemAsync(timeEntry);
+            Entries.Add(entry);
+
+            //reset inputs
+            StartTimeEntry = string.Empty;
+            EndTimeEntry = string.Empty;
+            PauseEntry = string.Empty;
+        }
+
+        private async Task OnUpdateEntry(TimeEntry timeEntry)
+        {
+            var timeEntryBefore = timeEntry;
+
+            // assign hours & minutes from new user input
+            var (startHours, startMinutes) = ParseTimeEntry(timeEntry.DisplayStartTime);
+            var (endHours, endMinutes) = ParseTimeEntry(timeEntry.DisplayEndTime);
+
+            timeEntry.StartHours= startHours;
+            timeEntry.StartMinutes = startMinutes;
+            timeEntry.EndHours = endHours;
+            timeEntry.EndMinutes = endMinutes;
+
+            var result = await DataStore.UpdateItemAsync(timeEntry);
+
+            result.Switch (
+                async entry => await HandleInfoText("Entry updated"),
+                async error => await HandleInfoText(error, success: false));
+        }
+
+        async void OnTimeEntrySelected(TimeEntry timeEntry)
+        {
+            if (timeEntry is null)
+            {
+                return;
+            }
+
+            var idkifthisshitworks = timeEntry;
+
+            // This will push the ItemDetailPage onto the navigation stack
+            //await Shell.Current.GoToAsync($"{nameof(ItemDetailPage)}?{nameof(ItemDetailViewModel.ItemId)}={item.Id}");
+        }
+
+        private (int Hours, int Minutes) ParseTimeEntry(string timeEntry)
+        {
+            var strings = timeEntry.Split(':');
+
+            var hours = Convert.ToInt32(strings[0]);
+            var minutes = Convert.ToInt32(strings[1]);
+
+            return (hours, minutes);
+        }
+
+        private async Task HandleInfoText(string infoText, bool success = true)
+        {
+            if (_infoTask.Status == TaskStatus.Running)
+            {
+                tokenSource.Cancel();
+            }
+
+            InfoTextColor = success ? "ForestGreen" : "PaleVioletRed";
+            InfoText = infoText;
+            
+            _infoTask = Task.Delay(2000, tokenSource.Token);
+            await _infoTask;
+
+            InfoText = string.Empty;
+        }
     }
 }

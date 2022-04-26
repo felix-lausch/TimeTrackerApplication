@@ -1,7 +1,11 @@
 ﻿namespace TimeTrackerApplication.Models
 {
+    using System;
+
     public class TimeEntry
     {
+        public Guid Id { get; set; }
+
         public int StartHours { get; set; }
 
         public int StartMinutes { get; set; }

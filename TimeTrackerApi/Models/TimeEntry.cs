@@ -5,7 +5,7 @@ namespace TimeTrackerApi.Models
 {
     public class TimeEntry
     {
-        public Guid Id { get; internal set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         [JsonIgnore]
         public DateTime Date { get; set; } = DateTime.UtcNow;
@@ -20,7 +20,7 @@ namespace TimeTrackerApi.Models
         public double StartMinutesAlt { get; set; } = 0.0;
 
         [JsonIgnore]
-        public TimeOnly StartTime => new (StartHours, StartMinutes, 0);
+        public TimeOnly StartTime => TryParseTimeOnly(StartHours, StartMinutes, 0);
 
         public string DisplayStartTime => StartTime.ToShortTimeString();
 
@@ -32,7 +32,7 @@ namespace TimeTrackerApi.Models
         public double EndMinutesAlt { get; set; } = 0.0;
 
         [JsonIgnore]
-        public TimeOnly EndTime => new(EndHours, EndMinutes, 0);
+        public TimeOnly EndTime => TryParseTimeOnly(EndHours, EndMinutes, 0);
 
         public string DisplayEndTime => EndTime.ToShortTimeString();
 
@@ -43,6 +43,19 @@ namespace TimeTrackerApi.Models
         private TimeSpan GetTotalTime()
         {
             return (EndTime - StartTime) - TimeSpan.FromHours(PauseHours);
+        }
+
+        private static TimeOnly TryParseTimeOnly(int year, int month, int day)
+        {
+            try
+            {
+                var timeOnly = new TimeOnly(year, month, day);
+                return timeOnly;
+            }
+            catch
+            {
+                return TimeOnly.MinValue;
+            }
         }
     }
 }
