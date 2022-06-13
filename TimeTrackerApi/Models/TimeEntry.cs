@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace TimeTrackerApi.Models
@@ -11,6 +12,10 @@ namespace TimeTrackerApi.Models
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public string DisplayDate => Date.ToShortDateString();
+
+        public string DisplayDate_US => Date.ToString("yyyy-MM-dd");
+
+        public string Weekday => Date.ToString("ddd");
 
         public int StartHours { get; set; }
 
@@ -38,18 +43,13 @@ namespace TimeTrackerApi.Models
 
         public double PauseHours { get; set; } = 0.0;
 
-        public TimeSpan TotalHours => GetTotalTime();
+        public TimeSpan TotalHours => (EndTime - StartTime) - TimeSpan.FromHours(PauseHours);
 
-        private TimeSpan GetTotalTime()
-        {
-            return (EndTime - StartTime) - TimeSpan.FromHours(PauseHours);
-        }
-
-        private static TimeOnly TryParseTimeOnly(int year, int month, int day)
+        private static TimeOnly TryParseTimeOnly(int hour, int minute, int second)
         {
             try
             {
-                var timeOnly = new TimeOnly(year, month, day);
+                var timeOnly = new TimeOnly(hour, minute, second);
                 return timeOnly;
             }
             catch
