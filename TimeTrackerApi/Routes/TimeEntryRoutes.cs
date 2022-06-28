@@ -30,7 +30,7 @@ public static class TimeEntryRoutes
         app.MapGet("/timeEntry/{id}",
             async ([FromServices] TimeEntryRepository repo, Guid id) =>
             {
-                var timeEntry = await repo.GetById(id);
+                var timeEntry = await repo.GetByIdAsync(id);
                 return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
             });
 
@@ -84,7 +84,7 @@ public static class TimeEntryRoutes
         app.MapDelete("/timeEntry/{id}",
             async ([FromServices] TimeEntryRepository repo, Guid id) =>
             {
-                var result = await repo.DeleteById(id);
+                var result = await repo.DeleteByIdAsync(id);
 
                 return result.Match(
                     success => Results.NoContent(),

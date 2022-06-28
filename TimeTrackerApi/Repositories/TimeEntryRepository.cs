@@ -46,14 +46,14 @@ public class TimeEntryRepository : RepositoryBase
         return entries;
     }
 
-    public async Task<TimeEntry?> GetById(Guid id)
+    public async Task<TimeEntry?> GetByIdAsync(Guid id)
     {
         return await timeEntries.FindAsync(id);
     }
 
-    public async Task<OneOf<Success, Error>> DeleteById(Guid id)
+    public async Task<OneOf<Success, Error>> DeleteByIdAsync(Guid id)
     {
-        var timeEntry = await GetById(id);
+        var timeEntry = await GetByIdAsync(id);
 
         if (timeEntry is null)
         {
@@ -68,13 +68,12 @@ public class TimeEntryRepository : RepositoryBase
 
     public async Task<OneOf<TimeEntry, Error>> UpdateAsync(TimeEntry entry)
     {
-        var existingEntry = await GetById(entry.Id);
+        var existingEntry = await GetByIdAsync(entry.Id);
 
         if (existingEntry is null)
         {
             //throw new ArgumentException("TimeEntry to update couldn't be found.");
             return new Error("TimeEntry to update couldn't be found.");
-            //return "TimeEntry to update couldn't be found.";
         }
 
         existingEntry.Date = entry.Date;

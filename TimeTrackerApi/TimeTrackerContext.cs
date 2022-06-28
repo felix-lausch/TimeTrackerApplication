@@ -18,7 +18,7 @@ public class TimeTrackerContext : DbContext
     protected override void ConfigureConventions(ModelConfigurationBuilder builder)
     {
         builder.Properties<DateOnly>()
-            .HaveConversion<DateOnlyConverter>()
+            .HaveConversion<DateOnlyValueConverter>()
             .HaveColumnType("date");
     }
 

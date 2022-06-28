@@ -43,6 +43,21 @@ public class CachedRepository<T> : IRepository<T>
         throw new NotImplementedException();
     }
 
+    public Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> AnyAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> AnyAsync(CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<int> CountAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
@@ -59,6 +74,16 @@ public class CachedRepository<T> : IRepository<T>
     }
 
     public Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<T?> FirstOrDefaultAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<TResult?> FirstOrDefaultAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
@@ -85,6 +110,11 @@ public class CachedRepository<T> : IRepository<T>
     }
 
     public Task<TResult> GetBySpecAsync<TResult>(ISpecification<T, TResult> specification, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<T?> GetBySpecAsync(ISpecification<T> specification, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
@@ -116,7 +146,27 @@ public class CachedRepository<T> : IRepository<T>
         throw new NotImplementedException();
     }
 
+    public Task<T?> SingleOrDefaultAsync(ISingleResultSpecification<T> specification, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<TResult?> SingleOrDefaultAsync<TResult>(ISingleResultSpecification<T, TResult> specification, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task<int> IRepositoryBase<T>.SaveChangesAsync(CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
