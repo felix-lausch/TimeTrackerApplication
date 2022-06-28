@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using OneOf;
+using OneOf.Types;
 using TimeTrackerApi.Models;
 
 namespace TimeTrackerApi.Repositories;
@@ -7,13 +9,14 @@ namespace TimeTrackerApi.Repositories;
 public class TimeEntryRepository : RepositoryBase
 {
     private readonly DbSet<TimeEntry> timeEntries;
-    private readonly IMemoryCache cache;
+    //private readonly IMemoryCache cache;
 
-    public TimeEntryRepository(TimeTrackerContext dbContext, IMemoryCache cache)
+    //public TimeEntryRepository(TimeTrackerContext dbContext, IMemoryCache cache)
+    public TimeEntryRepository(TimeTrackerContext dbContext)
         : base(dbContext)
     {
         timeEntries = dbContext.TimeEntries;
-        this.cache = cache;
+        //this.cache = cache;
     }
 
     public async Task<TimeEntry> CreateAsync(TimeEntry timeEntry)
@@ -24,21 +27,21 @@ public class TimeEntryRepository : RepositoryBase
         return timeEntry;
     }
 
-    public async Task<List<TimeEntry>> GetAtllAsync()
+    public async Task<List<TimeEntry>> GetAllAsync()
     {
-        var cacheKey = "timeEntriesList";
+        //var cacheKey = "timeEntriesList";
 
-        var entries = cache.Get<List<TimeEntry>>(cacheKey);
+        //var entries = cache.Get<List<TimeEntry>>(cacheKey);
 
-        if (entries is null)
-        {
-            entries = await timeEntries.ToListAsync();
+        //if (entries is null)
+        //{
+            var entries = await timeEntries.ToListAsync();
 
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+            //var cacheEntryOptions = new MemoryCacheEntryOptions()
+                //.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
 
-            cache.Set(cacheKey, entries, cacheEntryOptions);
-        }
+            //cache.Set(cacheKey, entries, cacheEntryOptions);
+        //}
 
         return entries;
     }
@@ -48,26 +51,30 @@ public class TimeEntryRepository : RepositoryBase
         return await timeEntries.FindAsync(id);
     }
 
-    public async Task DeleteById(Guid id)
+    public async Task<OneOf<Success, Error>> DeleteById(Guid id)
     {
         var timeEntry = await GetById(id);
 
         if (timeEntry is null)
         {
-            throw new ArgumentException("TimeEntry to delete couldn't be found.");
+            //throw new ArgumentException("TimeEntry to delete couldn't be found.");
+            return new Error("TimeEntry to delete couldn't be found.");
         }
 
         timeEntries.Remove(timeEntry);
         await SaveChangesAsync();
+        return new Success();
     }
 
-    public async Task<TimeEntry> UpdateAsync(TimeEntry entry)
+    public async Task<OneOf<TimeEntry, Error>> UpdateAsync(TimeEntry entry)
     {
         var existingEntry = await GetById(entry.Id);
 
         if (existingEntry is null)
         {
-            throw new ArgumentException("TimeEntry to update couldn't be found.");
+            //throw new ArgumentException("TimeEntry to update couldn't be found.");
+            return new Error("TimeEntry to update couldn't be found.");
+            //return "TimeEntry to update couldn't be found.";
         }
 
         existingEntry.Date = entry.Date;
@@ -80,5 +87,15 @@ public class TimeEntryRepository : RepositoryBase
         await SaveChangesAsync();
 
         return entry;
+    }
+}
+
+public partial struct Error
+{
+    public string Message { get; set; }
+
+    public Error(string messaage)
+    {
+        Message = messaage;
     }
 }

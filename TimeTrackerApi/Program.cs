@@ -8,7 +8,10 @@ using System.Reflection;
 using TimeTrackerApi;
 using TimeTrackerApi.Models;
 using TimeTrackerApi.Repositories;
+using TimeTrackerApi.Routes;
 using TimeTrackerApi.Specifications;
+
+const string CorsPolicyName = "AllowLocalHost";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +28,18 @@ builder.Configuration.AddUserSecrets<Program>();
 //});
 
 builder.Services
+    .AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            //policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins("http://localhost:3000").WithMethods("POST", "PUT", "DELETE").WithHeaders("content-type");
+        });
+
+    })
     .AddTransient<TimeEntryRepository>()
-    .AddScoped(typeof(EfRepository<>))
-    .AddScoped(typeof(IRepository<>), typeof(CachedRepository<>))
+    //.AddScoped(typeof(EfRepository<>))
+    //.AddScoped(typeof(IRepository<>), typeof(CachedRepository<>))
     .AddDbContext<TimeTrackerContext>(
     options =>
     {
@@ -48,95 +60,99 @@ builder.Services
 var app = builder.Build();
 
 //Uses
+app.UseRouting();
+app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI();
 
 //app.UseAuthentication();
 //app.UseAuthorization();
 
-app.MapGet("/", () => "Hi :)");
+app.InitTimeEntryRoutes();
 
-app.MapGet("/timeEntries",
-    async ([FromServices] TimeEntryRepository repo) =>
-    {
-        var timeEntries = await repo.GetAtllAsync();
-        return Results.Ok(timeEntries);
-    });
+//app.MapGet("/", () => "Hi :)");
 
-app.MapGet("/timeEntries2",
-    async ([FromServices] IRepository<TimeEntry> repo, ILogger<Program> logger) =>
-    {
-        logger.LogInformation("Get all time entries requested.");
-        //var spec = new TimeEntriesSpecification();
-        //var timeEntries = await repo.ListAsync(spec);
-        var timeEntries = await repo.ListAsync();
-        return Results.Ok(timeEntries);
-    })
-    .AllowAnonymous();
+//app.MapGet("/timeEntries",
+//    async ([FromServices] TimeEntryRepository repo) =>
+//    {
+//        var timeEntries = await repo.GetAllAsync();
+//        return Results.Ok(timeEntries);
+//    });
 
-app.MapGet("/timeEntry/{id}",
-    async ([FromServices] TimeEntryRepository repo, Guid id) =>
-    {
-        var timeEntry = await repo.GetById(id);
-        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
-    });
+//app.MapGet("/timeEntries2",
+//    async ([FromServices] IRepository<TimeEntry> repo, ILogger<Program> logger) =>
+//    {
+//        logger.LogInformation("Get all time entries requested.");
+//        //var spec = new TimeEntriesSpecification();
+//        //var timeEntries = await repo.ListAsync(spec);
+//        var timeEntries = await repo.ListAsync();
+//        return Results.Ok(timeEntries);
+//    })
+//    .AllowAnonymous();
 
-app.MapGet("/timeEntry2/{id}",
-    async ([FromServices] IRepository<TimeEntry> repo, Guid id) =>
-    {
-        var timeEntry = await repo.GetByIdAsync(id);
-        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
-    })
-    .AllowAnonymous();
+//app.MapGet("/timeEntry/{id}",
+//    async ([FromServices] TimeEntryRepository repo, Guid id) =>
+//    {
+//        var timeEntry = await repo.GetById(id);
+//        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
+//    });
 
-app.MapPost("/timeEntry",
-    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
-    {
-        var validationResult = validator.Validate(entry);
-        if(!validationResult.IsValid)
-        {
-            var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
-            return Results.BadRequest(errors);
-        }
+//app.MapGet("/timeEntry2/{id}",
+//    async ([FromServices] IRepository<TimeEntry> repo, Guid id) =>
+//    {
+//        var timeEntry = await repo.GetByIdAsync(id);
+//        return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
+//    })
+//    .AllowAnonymous();
 
-        var createdEntry = await repo.CreateAsync(entry);
+//app.MapPost("/timeEntry",
+//    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, HttpRequest req, TimeEntry entry) =>
+//    {
+//        var validationResult = validator.Validate(entry);
+//        if (!validationResult.IsValid)
+//        {
+//            var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
+//            return Results.BadRequest(errors);
+//        }
 
-        return Results.Ok(createdEntry);
-    });
+//        var createdEntry = await repo.CreateAsync(entry);
 
-app.MapPut("/timeEntry",
-    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry) =>
-    {
-        if (entry.Id == Guid.Empty)
-        {
-            return Results.BadRequest("No valid id provided.");
-        }
+//        return Results.Ok(createdEntry);
+//    });
 
-        var validationResult = validator.Validate(entry);
-        if (!validationResult.IsValid)
-        {
-            var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
-            return Results.BadRequest(errors);
-        }
+//app.MapPut("/timeEntry/{id}",
+//    async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, TimeEntry entry, Guid id) =>
+//    {
+//        if (id == Guid.Empty)
+//        {
+//            return Results.BadRequest("No valid id provided.");
+//        }
+//        entry.Id = id;
 
-        var result = await repo.UpdateAsync(entry);
-        return Results.Ok(result);
-    })
-    .AllowAnonymous();
+//        var validationResult = validator.Validate(entry);
+//        if (!validationResult.IsValid)
+//        {
+//            var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
+//            return Results.BadRequest(errors);
+//        }
 
-app.MapDelete("/timeEntry/{id}",
-    async ([FromServices] TimeEntryRepository repo, Guid id) =>
-    {
-        try
-        {
-            await repo.DeleteById(id);
-            return Results.NoContent();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-    })
-    .AllowAnonymous();
+//        var result = await repo.UpdateAsync(entry);
+
+//        return result.Match(
+//            updatedEntry => Results.Ok(updatedEntry),
+//            error => Results.BadRequest(error.Message));
+//    })
+//    .AllowAnonymous();
+
+//app.MapDelete("/timeEntry/{id}",
+//    async ([FromServices] TimeEntryRepository repo, Guid id) =>
+//    {
+//        var result = await repo.DeleteById(id);
+
+//        return result.Match(
+//            success => Results.NoContent(),
+//            error => Results.BadRequest(error.Message));
+//    })
+//    .AllowAnonymous();
 
 app.Run();
