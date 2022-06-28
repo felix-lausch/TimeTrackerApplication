@@ -9,8 +9,6 @@ public static class TimeEntryRoutes
 {
     public static void InitTimeEntryRoutes(this WebApplication app)
     {
-        app.MapGet("/", () => "Hi :)");
-
         app.MapGet("/timeEntries",
             async ([FromServices] TimeEntryRepository repo, HttpRequest req) =>
             {
