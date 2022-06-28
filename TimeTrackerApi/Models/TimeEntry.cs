@@ -15,7 +15,7 @@ namespace TimeTrackerApi.Models
 
         public string DisplayDate_US => Date.ToString("yyyy-MM-dd");
 
-        public string Weekday => Date.ToString("ddd");
+        public string Weekday => Date.ToString("dddd", CultureInfo.InvariantCulture).ToUpper();
 
         public int StartHours { get; set; }
 

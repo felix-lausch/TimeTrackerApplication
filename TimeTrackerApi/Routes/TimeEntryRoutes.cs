@@ -7,7 +7,7 @@ using TimeTrackerApi.Repositories;
 
 public static class TimeEntryRoutes
 {
-    public static void InitTimeEntryRoutes(this WebApplication app)
+    public static WebApplication MapTimeEntryRoutes(this WebApplication app)
     {
         app.MapGet("/timeEntries",
             async ([FromServices] TimeEntryRepository repo, HttpRequest req) =>
@@ -91,5 +91,7 @@ public static class TimeEntryRoutes
                     error => Results.BadRequest(error.Message));
             })
             .AllowAnonymous();
+
+        return app;
     }
 }

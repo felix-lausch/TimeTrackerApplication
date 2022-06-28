@@ -37,7 +37,8 @@ builder.Services
         });
 
     })
-    .AddTransient<TimeEntryRepository>()
+    .AddScoped<TimeEntryRepository>()
+    .AddScoped<DayEntryRepository>()
     //.AddScoped(typeof(EfRepository<>))
     //.AddScoped(typeof(IRepository<>), typeof(CachedRepository<>))
     .AddDbContext<TimeTrackerContext>(
@@ -68,7 +69,8 @@ app.UseSwaggerUI();
 //app.UseAuthentication();
 //app.UseAuthorization();
 
-app.InitTimeEntryRoutes();
+app.MapTimeEntryRoutes();
+app.MapDayEntryRoutes();
 
 app.MapGet("/", () => "TimeTracker API is running.");
 
