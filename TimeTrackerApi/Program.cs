@@ -6,6 +6,7 @@ using System.Reflection;
 using TimeTrackerApi;
 using TimeTrackerApi.Repositories;
 using TimeTrackerApi.Routes;
+using TimeTrackerApi.Services;
 using TimeTrackerApi.Util;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,7 @@ var builder = WebApplication.CreateBuilder(args);
         })
         .AddScoped<TimeEntryRepository>()
         .AddScoped<DayEntryRepository>()
+        .AddTransient<MonthService>()
         .AddDbContext<TimeTrackerContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("SqlDb"));

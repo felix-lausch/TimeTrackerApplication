@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace TimeTrackerApi.Models
@@ -8,14 +7,14 @@ namespace TimeTrackerApi.Models
     {
         public Guid Id { get; internal set; }
 
-        [JsonIgnore]
-        public DateTime Date { get; set; } = DateTime.UtcNow;
+        //[JsonIgnore]
+        public DateOnly Date { get; set; }
 
-        public string DisplayDate => Date.ToShortDateString();
+        //public string DisplayDate => Date.ToShortDateString();
 
-        public string DisplayDate_US => Date.ToString("yyyy-MM-dd");
+        //public string DisplayDate_US => Date.ToString("yyyy-MM-dd");
 
-        public string Weekday => Date.ToString("dddd", CultureInfo.InvariantCulture).ToUpper();
+        //public string Weekday => Date.ToString("dddd", CultureInfo.InvariantCulture).ToUpper();
 
         public int StartHours { get; set; }
 

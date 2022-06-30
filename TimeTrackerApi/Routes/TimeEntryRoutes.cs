@@ -16,31 +16,12 @@ public static class TimeEntryRoutes
                 return Results.Ok(timeEntries);
             });
 
-        app.MapGet("/timeEntries2",
-            async ([FromServices] IRepository<TimeEntry> repo, ILogger<Program> logger) =>
-            {
-                logger.LogInformation("Get all time entries requested.");
-                //var spec = new TimeEntriesSpecification();
-                //var timeEntries = await repo.ListAsync(spec);
-                var timeEntries = await repo.ListAsync();
-                        return Results.Ok(timeEntries);
-                    })
-            .AllowAnonymous();
-
         app.MapGet("/timeEntry/{id}",
             async ([FromServices] TimeEntryRepository repo, Guid id) =>
             {
                 var timeEntry = await repo.GetByIdAsync(id);
                 return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
             });
-
-        app.MapGet("/timeEntry2/{id}",
-            async ([FromServices] IRepository<TimeEntry> repo, Guid id) =>
-            {
-                var timeEntry = await repo.GetByIdAsync(id);
-                return timeEntry is not null ? Results.Ok(timeEntry) : Results.NotFound();
-            })
-            .AllowAnonymous();
 
         app.MapPost("/timeEntry",
             async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, HttpRequest req, TimeEntry entry) =>

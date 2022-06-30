@@ -27,23 +27,20 @@ public class TimeEntryRepository : RepositoryBase
         return timeEntry;
     }
 
+    //TODO: check if this does what i need it to do.
+    public async Task<IEnumerable<TimeEntry>> GetByMonthAndYearAsync(int month, int year)
+    {
+        return await timeEntries
+            .FromSqlRaw("SELECT * FROM TimeEntries " +
+                "WHERE DATEPART(MONTH, Date) = {0} And DATEPART(YEAR, Date) = {1}",
+                month,
+                year)
+            .ToListAsync();
+    }
+
     public async Task<List<TimeEntry>> GetAllAsync()
     {
-        //var cacheKey = "timeEntriesList";
-
-        //var entries = cache.Get<List<TimeEntry>>(cacheKey);
-
-        //if (entries is null)
-        //{
-            var entries = await timeEntries.ToListAsync();
-
-            //var cacheEntryOptions = new MemoryCacheEntryOptions()
-                //.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
-
-            //cache.Set(cacheKey, entries, cacheEntryOptions);
-        //}
-
-        return entries;
+        return await timeEntries.ToListAsync();
     }
 
     public async Task<TimeEntry?> GetByIdAsync(Guid id)

@@ -3,13 +3,14 @@
 using Microsoft.AspNetCore.Mvc;
 using TimeTrackerApi.Models;
 using TimeTrackerApi.Repositories;
+using TimeTrackerApi.Services;
 
 public static class DayEntryRoutes
 {
     public static WebApplication MapDayEntryRoutes(this WebApplication app)
     {
         app.MapGet("/dayEntries",
-            ([FromServices] DayEntryRepository repo, [FromQuery] int month, [FromQuery] int year) =>
+            async ([FromServices] MonthService monthService, [FromQuery] int month, [FromQuery] int year) =>
             {
                 if (month < 1 || month > 12)
                 {
@@ -21,19 +22,19 @@ public static class DayEntryRoutes
                     return Results.BadRequest("Year must be between 1 & 9999.");
                 }
 
-                var dayEntries = repo.GetByMonthAndYearAsync(month, year);
+                var dtos = await monthService.GetTimeEntriesForMonthAndYear(month, year);
 
-                return Results.Ok(dayEntries);
+                return Results.Ok(dtos);
             });
 
         app.MapGet("/dayEntries/current",
-            ([FromServices] DayEntryRepository repo) =>
+            async ([FromServices] MonthService monthService) =>
             {
                 var dateTime = DateTime.UtcNow;
 
-                var dayEntries = repo.GetByMonthAndYearAsync(dateTime.Month, dateTime.Year);
+                var timeEntriesByDayDtos = await monthService.GetTimeEntriesForMonthAndYear(dateTime.Month, dateTime.Year);
 
-                return Results.Ok(dayEntries);
+                return Results.Ok(timeEntriesByDayDtos);
             });
 
         app.MapPost("/dayEntry",
