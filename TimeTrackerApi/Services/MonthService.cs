@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using TimeTrackerApi.Dtos;
+using TimeTrackerApi.Models;
 using TimeTrackerApi.Repositories;
 
 public class MonthService
@@ -28,41 +29,31 @@ public class MonthService
         this.timeEntryRepository = timeEntryRepository;
     }
 
-    public async Task<IEnumerable<TimeEntriesByDayDto>> GetTimeEntriesForMonthAndYear(
+    public async Task<MonthDto> GetMonthByMonthAndYear(
         int month,
         int year)
     {
         var timeEntries = await timeEntryRepository.GetByMonthAndYearAsync(month, year);
 
-        //var firstDayOfMonth = new DateOnly(year, month, 1);
-        //var daysInMonth = firstDayOfMonth.AddMonths(1).AddDays(-1).Day;
+        var timeEntriesGroupings = timeEntries.GroupBy(t => t.Date); //TODO: do this query in repo somehow
 
         var daysInMonth = GetDaysInMonth(month, year);
 
-        var results = new List<TimeEntriesByDayDto>();
+        var days = Enumerable.Range(1, daysInMonth)
+            .Select(day => new DateOnly(year, month, day))
+            .Select(date =>
+            {
+                return new TimeEntriesByDayDto(
+                    date,
+                    date.ToString("dddd", CultureInfo.InvariantCulture).ToUpper(),
+                    timeEntriesGroupings.FirstOrDefault(g => g.Key == date) ??  Enumerable.Empty<TimeEntry>());
+            });
 
-        for (var i = 1; i <= daysInMonth; i++)
-        {
-            var date = new DateOnly(year, month, i);
-
-            var dto = new TimeEntriesByDayDto(
-                date,
-                date.ToString("dddd", CultureInfo.InvariantCulture).ToUpper(),
-                timeEntries.Where(timeEntry => timeEntry.Date == date));
-
-            results.Add(dto);
-        }
-
-        return results;
-
-        //TODO: use group by? use hashMap maybe?
-        //var idk = timeEntries
-        //    .GroupBy(day => day.Date);
-
-        //var idk2 = idk.Select(grouping => new TimeEntriesByDayDto(
-        //        grouping.Key,
-        //        grouping.Key.ToString("dddd", CultureInfo.InvariantCulture),
-        //        grouping.ToList()));
+        return new MonthDto(
+                    days,
+                    new DateOnly(year, month, 1).ToString("MMMM", CultureInfo.InvariantCulture),
+                    month,
+                    year);
     }
 
     private int GetDaysInMonth(int month, int year)

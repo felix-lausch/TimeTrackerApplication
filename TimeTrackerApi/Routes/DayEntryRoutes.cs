@@ -22,9 +22,9 @@ public static class DayEntryRoutes
                     return Results.BadRequest("Year must be between 1 & 9999.");
                 }
 
-                var dtos = await monthService.GetTimeEntriesForMonthAndYear(month, year);
+                var monthDto = await monthService.GetMonthByMonthAndYear(month, year);
 
-                return Results.Ok(dtos);
+                return Results.Ok(monthDto);
             });
 
         app.MapGet("/dayEntries/current",
@@ -32,9 +32,9 @@ public static class DayEntryRoutes
             {
                 var dateTime = DateTime.UtcNow;
 
-                var timeEntriesByDayDtos = await monthService.GetTimeEntriesForMonthAndYear(dateTime.Month, dateTime.Year);
+                var monthDto = await monthService.GetMonthByMonthAndYear(dateTime.Month, dateTime.Year);
 
-                return Results.Ok(timeEntriesByDayDtos);
+                return Results.Ok(monthDto);
             });
 
         app.MapPost("/dayEntry",

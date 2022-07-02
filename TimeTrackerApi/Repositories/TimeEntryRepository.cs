@@ -32,7 +32,8 @@ public class TimeEntryRepository : RepositoryBase
     {
         return await timeEntries
             .FromSqlRaw("SELECT * FROM TimeEntries " +
-                "WHERE DATEPART(MONTH, Date) = {0} And DATEPART(YEAR, Date) = {1}",
+                "WHERE DATEPART(MONTH, Date) = {0} And DATEPART(YEAR, Date) = {1} " + 
+                "ORDER BY Date",
                 month,
                 year)
             .ToListAsync();
