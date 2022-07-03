@@ -30,7 +30,6 @@ var builder = WebApplication.CreateBuilder(args);
 
         })
         .AddScoped<TimeEntryRepository>()
-        .AddScoped<DayEntryRepository>()
         .AddTransient<MonthService>()
         .AddDbContext<TimeTrackerContext>(options =>
         {
@@ -55,9 +54,11 @@ var app = builder.Build();
     app.UseCors();
 
     app.MapTimeEntryRoutes();
-    app.MapDayEntryRoutes();
+    app.MapMonthRoutes();
 
     app.MapGet("/", () => "TimeTracker API is reachable.");
 
     app.Run();
 }
+
+public partial class Program {}

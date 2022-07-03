@@ -29,7 +29,7 @@ public class MonthService
         this.timeEntryRepository = timeEntryRepository;
     }
 
-    public async Task<MonthDto> GetMonthByMonthAndYear(
+    public async Task<MonthResponse> GetMonthByMonthAndYear(
         int month,
         int year)
     {
@@ -49,11 +49,11 @@ public class MonthService
                     timeEntriesGroupings.FirstOrDefault(g => g.Key == date) ??  Enumerable.Empty<TimeEntry>());
             });
 
-        return new MonthDto(
-                    days,
-                    new DateOnly(year, month, 1).ToString("MMMM", CultureInfo.InvariantCulture),
-                    month,
-                    year);
+        return new MonthResponse(
+            days,
+            new DateOnly(year, month, 1).ToString("MMMM", CultureInfo.InvariantCulture),
+            month,
+            year);
     }
 
     private int GetDaysInMonth(int month, int year)

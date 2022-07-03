@@ -26,7 +26,7 @@ public static class TimeEntryRoutes
         app.MapPost("/timeEntry",
             async ([FromServices] TimeEntryRepository repo, IValidator<TimeEntry> validator, HttpRequest req, TimeEntry entry) =>
             {
-                var validationResult = validator.Validate(entry);
+                var validationResult = await validator.ValidateAsync(entry);
                 if (!validationResult.IsValid)
                 {
                     var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
@@ -47,7 +47,7 @@ public static class TimeEntryRoutes
                 }
                 entry.Id = id;
 
-                var validationResult = validator.Validate(entry);
+                var validationResult = await validator.ValidateAsync(entry);
                 if (!validationResult.IsValid)
                 {
                     var errors = new { errors = validationResult.Errors.Select(x => x.ErrorMessage) };
@@ -68,7 +68,7 @@ public static class TimeEntryRoutes
                 var result = await repo.DeleteByIdAsync(id);
 
                 return result.Match(
-                    success => Results.NoContent(),
+                    success => Results.Ok(),
                     error => Results.BadRequest(error.Message));
             })
             .AllowAnonymous();

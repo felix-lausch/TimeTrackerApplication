@@ -1,6 +1,6 @@
 ﻿namespace TimeTrackerApi.Dtos;
 
-public record MonthDto(
+public record MonthResponse(
     IEnumerable<TimeEntriesByDayDto> Days,
     string MonthString,
     int Month,

@@ -1,15 +1,14 @@
 ﻿namespace TimeTrackerApi.IntegrationTests;
 
-using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using TimeTrackerApi.IntegrationTests.Util;
 using TimeTrackerApi.Models;
 using TimeTrackerApi.Util;
 
@@ -25,36 +24,42 @@ public class IntegrationTest
             {
                 builder.ConfigureServices(services =>
                 {
+                    // Replace sql database with inMemoryDb
                     var dbContextDescriptor = services.Single(s => s.ServiceType == typeof(DbContextOptions<TimeTrackerContext>));
-                    var removedSuccessful = services.Remove(dbContextDescriptor);
+                    services.Remove(dbContextDescriptor);
                     
                     services.AddDbContext<TimeTrackerContext>(
                         options => options.UseInMemoryDatabase("TestDb"),
                         ServiceLifetime.Scoped,
                         ServiceLifetime.Scoped);
+                    
+                    // Ensure clean db for every test
+                    using (var scope = services.BuildServiceProvider().CreateScope())
+                    {
+                        var scopedServices = scope.ServiceProvider;
+                        var db = scopedServices.GetRequiredService<TimeTrackerContext>();
+                        db.Database.EnsureDeleted();
+                        db.Database.EnsureCreated();
+                    }
                 });
+
             });
 
         httpClient = appFactory.CreateClient();
 
         jsonSerializerOptions.Converters.Add(new DateOnlyJsonConverter());
+        jsonSerializerOptions.PropertyNameCaseInsensitive = true;
     }
 
-    protected async Task CreateTimeEntry()
+    protected async Task<TimeEntry> SetupTimeEntry()
     {
-        var timeEntry = new TimeEntry
-        {
-            Date = new DateOnly(2020, 3, 4),
-            StartHours = 7,
-            StartMinutes = 30,
-            EndHours = 17,
-            EndMinutes = 0,
-            PauseHours = 1.5,
-        };
-
-        await httpClient.PostAsJsonAsync(
+        var response = await httpClient.PostAsJsonAsync(
             "/timeEntry",
-            timeEntry,
+            TestHelper.GetTimeEntry(),
             jsonSerializerOptions);
+
+        var timeEntry = await response.Content.ReadFromJsonAsync<TimeEntry>(jsonSerializerOptions);
+
+        return timeEntry!;
     }
 }
