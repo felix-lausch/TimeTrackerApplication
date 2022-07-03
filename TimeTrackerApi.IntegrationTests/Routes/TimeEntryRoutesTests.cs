@@ -64,15 +64,20 @@ public class TimeEntryRoutesTests : IntegrationTest
 
         var postBody = await postResponse.Content.ReadFromJsonAsync<TimeEntry>(jsonSerializerOptions);
         Assert.IsNotNull(postBody);
+        Assert.AreEqual(timeEntry.Id, postBody.Id);
         Assert.AreEqual(timeEntry.Date, postBody.Date);
-        //TODO: the response should be a record that is easily comparable.
+        Assert.AreEqual(timeEntry.StartHours, postBody.StartHours);
+        Assert.AreEqual(timeEntry.StartMinutes, postBody.StartMinutes);
+        Assert.AreEqual(timeEntry.EndHours, postBody.EndHours);
+        Assert.AreEqual(timeEntry.EndMinutes, postBody.EndMinutes);
+        Assert.AreEqual(timeEntry.PauseHours, postBody.PauseHours);
 
         var getResponse = await httpClient.GetAsync("/timeEntry/" + postBody.Id);
         Assert.AreEqual(HttpStatusCode.OK, getResponse.StatusCode);
     }
 
     [TestMethod]
-    public async Task PoutChangesInDb()
+    public async Task PutChangesInDb()
     {
         var existingTimeEntry = await SetupTimeEntry();
 
@@ -85,14 +90,21 @@ public class TimeEntryRoutesTests : IntegrationTest
 
         var putBody = await putResponse.Content.ReadFromJsonAsync<TimeEntry>(jsonSerializerOptions);
         Assert.IsNotNull(putBody);
+        Assert.AreEqual(timeEntry.Id, putBody.Id);
+        Assert.AreEqual(timeEntry.Date, putBody.Date);
+        Assert.AreEqual(timeEntry.StartHours, putBody.StartHours);
+        Assert.AreEqual(timeEntry.StartMinutes, putBody.StartMinutes);
+        Assert.AreEqual(timeEntry.EndHours, putBody.EndHours);
+        Assert.AreEqual(timeEntry.EndMinutes, putBody.EndMinutes);
         Assert.AreEqual(timeEntry.PauseHours, putBody.PauseHours);
+
         //TODO: the response should be a record that is easily comparable.
 
         var getResponse = await httpClient.GetAsync("/timeEntry/" + putBody.Id);
         Assert.AreEqual(HttpStatusCode.OK, getResponse.StatusCode);
         var getBody = await getResponse.Content.ReadFromJsonAsync<TimeEntry>(jsonSerializerOptions);
         Assert.IsNotNull(putBody);
-        Assert.AreEqual(timeEntry.PauseHours, getBody.PauseHours);
+        Assert.AreEqual(timeEntry.PauseHours, getBody!.PauseHours);
     }
 
     [TestMethod]

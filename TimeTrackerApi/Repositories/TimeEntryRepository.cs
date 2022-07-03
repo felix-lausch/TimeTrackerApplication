@@ -74,12 +74,7 @@ public class TimeEntryRepository : RepositoryBase
             return new Error("TimeEntry to update couldn't be found.");
         }
 
-        existingEntry.Date = entry.Date;
-        existingEntry.StartHours = entry.StartHours;
-        existingEntry.StartMinutes = entry.StartMinutes;
-        existingEntry.EndHours = entry.EndHours;
-        existingEntry.EndMinutes = entry.EndMinutes;
-        existingEntry.PauseHours = entry.PauseHours;
+        existingEntry.Map(entry);
 
         await SaveChangesAsync();
 
