@@ -49,7 +49,7 @@ public class TimeEntryRepository : RepositoryBase
         return await timeEntries.FindAsync(id);
     }
 
-    public async Task<OneOf<Success, Error>> DeleteByIdAsync(Guid id)
+    public async Task<OneOf<TimeEntry, Error>> DeleteByIdAsync(Guid id)
     {
         var timeEntry = await GetByIdAsync(id);
 
@@ -61,7 +61,7 @@ public class TimeEntryRepository : RepositoryBase
 
         timeEntries.Remove(timeEntry);
         await SaveChangesAsync();
-        return new Success();
+        return timeEntry;
     }
 
     public async Task<OneOf<TimeEntry, Error>> UpdateAsync(TimeEntry entry)

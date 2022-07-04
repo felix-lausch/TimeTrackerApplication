@@ -33,6 +33,8 @@ public static class TimeEntryRoutes
                     return Results.BadRequest(errors);
                 }
 
+                entry.Id = Guid.NewGuid();
+
                 var createdEntry = await repo.CreateAsync(entry);
 
                 return Results.Ok(createdEntry);
@@ -68,7 +70,7 @@ public static class TimeEntryRoutes
                 var result = await repo.DeleteByIdAsync(id);
 
                 return result.Match(
-                    success => Results.Ok(),
+                    timeEntry => Results.Ok(timeEntry),
                     error => Results.BadRequest(error.Message));
             })
             .AllowAnonymous();

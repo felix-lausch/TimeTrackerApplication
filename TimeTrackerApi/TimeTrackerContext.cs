@@ -23,6 +23,4 @@ public class TimeTrackerContext : DbContext
     }
 
     public virtual DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
-
-    public virtual DbSet<DayEntry> DayEntries => Set<DayEntry>();
 }
